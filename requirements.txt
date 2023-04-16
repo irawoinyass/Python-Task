@@ -1,0 +1,8 @@
+django>=4.0.0,<4.1.0
+djangorestframework
+django-rest-knox
+# djangorestframework-simplejwt
+pyyml
+requests
+django-cors-headers
+mysqlclient
