@@ -299,3 +299,117 @@ def fetch_nestedcomments_by_post_id(request, **kwargs):
         return paginator.get_paginated_response(serializer.data)
     else:
         return Response({"detail": "Nothing Found"})
+
+
+# Fetch Post
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsUser])
+def fetch_posts(request):
+    user = request.user
+
+    try:
+        search = request.data['search']
+    except:
+        return Response({"Error": "Include Search Field"})
+
+    try:
+        category_id = request.data['category_id']
+    except:
+        return Response({"Error": "Include Category ID Field"})
+
+    try:
+        date = request.data['date']
+    except:
+        return Response({"Error": "Include Date Field"})
+
+    # Search Only
+    if search != "" and category_id == "" and date == "":
+        queryset = Post.objects.filter(title__icontains=search, is_public=True)
+        if len(queryset) > 0:
+            paginator = StandardResultsSetPagination()
+            result_page = paginator.paginate_queryset(queryset, request)
+            serializer = PostSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            return Response({"detail": "Nothing Found"})
+
+    # Category Only
+    if search == "" and category_id != "" and date == "":
+        queryset = Post.objects.filter(category_id=category_id, is_public=True)
+        if len(queryset) > 0:
+            paginator = StandardResultsSetPagination()
+            result_page = paginator.paginate_queryset(queryset, request)
+            serializer = PostSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            return Response({"detail": "Nothing Found"})
+
+    # Date Only
+    if search == "" and category_id == "" and date != "":
+        queryset = Post.objects.filter(
+            posted_at__gte=date, is_public=True)
+        if len(queryset) > 0:
+            paginator = StandardResultsSetPagination()
+            result_page = paginator.paginate_queryset(queryset, request)
+            serializer = PostSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            return Response({"detail": "Nothing Found"})
+
+        # Search,  Caegory, Date
+    if search != "" and category_id != "" and date != "":
+        queryset = Post.objects.filter(title__icontains=search).filter(category_id=category_id).filter(
+            posted_at__gte=date).filter(is_public=True)
+        if len(queryset) > 0:
+            paginator = StandardResultsSetPagination()
+            result_page = paginator.paginate_queryset(queryset, request)
+            serializer = PostSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            return Response({"detail": "Nothing Found"})
+
+        # Search,  Caegory
+    if search != "" and category_id != "" and date == "":
+        queryset = Post.objects.filter(title__icontains=search).filter(
+            category_id=category_id).filter(is_public=True)
+        if len(queryset) > 0:
+            paginator = StandardResultsSetPagination()
+            result_page = paginator.paginate_queryset(queryset, request)
+            serializer = PostSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            return Response({"detail": "Nothing Found"})
+
+         # Search, Date
+    if search != "" and category_id == "" and date != "":
+        queryset = Post.objects.filter(title__icontains=search).filter(
+            posted_at__gte=date).filter(is_public=True)
+        if len(queryset) > 0:
+            paginator = StandardResultsSetPagination()
+            result_page = paginator.paginate_queryset(queryset, request)
+            serializer = PostSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            return Response({"detail": "Nothing Found"})
+
+    # Caegory, Date
+    if search == "" and category_id != "" and date != "":
+        queryset = Post.objects.filter(category_id=category_id).filter(
+            posted_at__gte=date).filter(is_public=True)
+        if len(queryset) > 0:
+            paginator = StandardResultsSetPagination()
+            result_page = paginator.paginate_queryset(queryset, request)
+            serializer = PostSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            return Response({"detail": "Nothing Found"})
+
+    # default
+    queryset = Post.objects.filter(is_public=True)
+    if len(queryset) > 0:
+        paginator = StandardResultsSetPagination()
+        result_page = paginator.paginate_queryset(queryset, request)
+        serializer = PostSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    else:
+        return Response({"detail": "Nothing Found"})

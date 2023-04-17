@@ -9,6 +9,7 @@ from accounts.models import User
 from .permissions import IsSuperUser
 from categories.models import Category
 from posts.models import Post, Comment, NestedComment
+from posts.serializers import PostSerializer, CommentSerializer
 
 # ADMIN LOGIN API
 
@@ -134,3 +135,10 @@ def dashboard(request):
         return Response({"users": users, "adminusers": adminusers, "categories": categories, "posts": posts, "comments": comments})
 
     return Response({"Error": "UnAuthorized User"})
+
+
+# Fetch Posts
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsSuperUser])
+def fetch_posts(request):
+    user = request.user

@@ -25,4 +25,5 @@ urlpatterns = [
          views.fetch_comments_by_post_id),
     path('comment/fetch-nestedcomments-by-comment-id/<int:comment_id>/',
          views.fetch_nestedcomments_by_post_id),
+    path('', views.fetch_posts),
 ]
