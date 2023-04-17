@@ -11,3 +11,10 @@ class IsSuperUser(permissions.DjangoModelPermissions):
         'PATCH': ['%(app_label)s.change_%(model_name)s'],
         'DELETE': ['%(app_label)s.delete_%(model_name)s'],
     }
+
+
+class IsSuperUserTwo(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_superuser is True:
+            return super().has_permission(request, view)
+        return False
