@@ -4,7 +4,7 @@ from . import views
 
 
 urlpatterns = [
-    path('login/', views.login_api),  # Login
+    path('login/', views.login_api, name="superuser-login"),  # Login
     path('dashboard/', views.dashboard),  # Login
     path('posts/', views.fetch_posts),  # Posts
     path('comments/', views.fetch_comments),  # Comments

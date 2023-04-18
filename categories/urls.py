@@ -5,7 +5,7 @@ from . import views
 
 urlpatterns = [
     path('list/', views.category_list_create_view),
-    path('create/', views.category_list_create_view),
+    path('create/', views.category_list_create_view, name="create-category"),
     path('update/<int:pk>/', views.category_update_view),
     path('find/<int:pk>/', views.category_detail_view),
     path('delete/<int:pk>/', views.category_destory_view),
