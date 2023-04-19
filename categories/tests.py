@@ -1,6 +1,9 @@
+from django.test import TestCase
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from rest_framework import status
+from django.contrib.auth.models import User
+from django.test import Client
 
 # Create your tests here.
 
@@ -11,11 +14,18 @@ class TestListCreateCategory(APITestCase):
         response = self.client.post(reverse(
             "superuser-login"), {"username": "lasisisaheed10@gmail.com", "password": "opeyemi"})
 
-        self.client.credentials(
-            HTTP_AUTHORIZATION=f"Token {response.data['token']}")
+        # self.client.credentials(
+        #     HTTP_AUTHORIZATION=f"Token {response.data['token']}")
 
-    def create_test(self):
-        # self.authenticate()
-        value = {"category_name": "test_name"}
-        response = self.client.post(reverse("create-category"), value)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # c = Client()
+
+        # response = c.login(
+        #     username='lasisisaheed10@gmail.com', password='opeyemi')
+
+        print(response.data)
+
+    def test_create(self):
+        self.authenticate()
+        # value = {"category_name": "test_name"}
+        # response = self.client.post(reverse("create-category"), value)
+        # self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
