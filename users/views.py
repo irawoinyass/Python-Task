@@ -56,22 +56,22 @@ def activation(request, **kwargs):
     confirmation_token = kwargs['confirmation_token']
 
     try:
-        user = get_object_or_404(User, id=user_id)
-        # user = User.objects.filter(id=user_id)
-        if user is None:
+        userr = get_object_or_404(User, id=user_id)
+        user = User.objects.filter(id=user_id)
+        if user.count() == 0:
             return Response({"Error": "User Not Found"}, status=404)
-        token = get_object_or_404(
-            ActivationModel, user_id=user_id, token=confirmation_token)
-        # token = ActivationModel.objects.filter(
-        #     user_id=user_id, token=confirmation_token)
-        if token is None:
-            raise ValueError("Expired or invalid token")
+        # token = get_object_or_404(
+            # ActivationModel, user_id = user_id, token = confirmation_token)
+        token = ActivationModel.objects.filter(
+            user_id=user_id, token=confirmation_token)
+        if token.count() == 0:
+            return Response({"Error": "Invalid or Expired Token"}, status=404)
 
     except Exception as e:
         raise e
 
-    user.is_active = True
-    user.save()
+    userr.is_active = True
+    userr.save()
     ActivationModel.objects.filter(
         user_id=user_id, token=confirmation_token).delete()
 
@@ -88,14 +88,8 @@ def login_api(request):
     user = serializer.validated_data['user']
     _, token = AuthToken.objects.create(user)
 
-    if user.is_staff is False:
+    if user.role == "USER":
         return Response({
-            'user_info': {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'name': user.name
-            },
             'token': token
         })
     return Response({"Error": "UnAuthorized User"})
@@ -138,42 +132,26 @@ def forgetpassword_request(request):
 
     try:
         email_address = request.data['email']
-    except:
-        return Response({"Error": "Email Field Not Found"})
+        if email_address == "":
+            # raise Exception("Email Field Not Found")
+            return Response({"Error": "Email is required"}, status=404)
 
-    try:
+        checkUser = User.objects.filter(email=email_address)
+        if checkUser.count() == 0:
+            return Response({"Error": "User Not Found"}, status=404)
         userObj = get_object_or_404(User, email=request.data['email'])
         userData = RegisterSerializer(userObj).data
-    except:
-        userObj = None
-        userData = None
 
-    if userData is None:
-        return Response({"Error": "User Not Found"})
-    try:
-        TokenCheck = get_object_or_404(
-            PasswordTokenModel, user_id=userData['id'])
-    except:
-        TokenCheck = None
+        TokenCheck = PasswordTokenModel.objects.filter(
+            user_id=userData['id']).count()
 
-    if TokenCheck is not None:
-        PasswordTokenModel.objects.filter(user_id=userData['id']).delete()
+        if TokenCheck > 0:
+            TokenCheck = PasswordTokenModel.objects.filter(
+                user_id=userData['id']).delete()
 
-        confirmation_token = default_token_generator.make_token(userObj)
-        serializer = PasswordTokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=False)
-        addon = serializer.save(
-            user_id=userObj, token=confirmation_token)
-        user_id = userData['id']
-        actiavation_link = f'http://localhost:8000/api/user/password/reset/{user_id}/{confirmation_token}/'
+    except Exception as e:
+        raise e
 
-        send_mail(
-            subject='Password Reset',
-            message=actiavation_link,
-            from_email=settings.EMAIL_FROM_EMAIL,
-            recipient_list=[userData['email']])
-
-        return Response("Password Reset Mail has been sent")
     confirmation_token = default_token_generator.make_token(userObj)
     serializer = PasswordTokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=False)
@@ -190,9 +168,8 @@ def forgetpassword_request(request):
 
     return Response("Password Reset Mail has been sent")
 
-# PASSWORD RESET
 
-
+# Password Reset
 @ api_view(['POST'])
 @ permission_classes([AllowAny,])
 def password_rest(request, **kwargs):
