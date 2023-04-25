@@ -2,8 +2,9 @@ from django.test import TestCase
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from rest_framework import status
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.test import Client
+from accounts.models import User
 
 # Create your tests here.
 
@@ -11,8 +12,9 @@ from django.test import Client
 class TestListCreateCategory(APITestCase):
 
     def authenticate(self):
+
         response = self.client.post(reverse(
-            "superuser-login"), {"username": "lasisisaheed10@gmail.com", "password": "opeyemi"})
+            "superuser-login"), {"username": "lasisisaheed5@gmail.com", "password": "opeyemi"})
 
         # self.client.credentials(
         #     HTTP_AUTHORIZATION=f"Token {response.data['token']}")
