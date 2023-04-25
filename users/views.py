@@ -40,16 +40,9 @@ def register_api(request):
         recipient_list=[user.email])
 
     return Response({
-        'user_info':
-                    {
-                        'id': user.id,
-                        'username': user.username,
-                        'email': user.email,
-                        'name': user.name
-
-                    },
-                    'token': token
-                    })
+        'message': 'success',
+        'token': token
+    })
 
 # ACTIVATION
 
@@ -64,24 +57,31 @@ def activation(request, **kwargs):
 
     try:
         user = get_object_or_404(User, id=user_id)
-    except:
-        return Response({"Error": "User Not Found"})
-
-    try:
+        # user = User.objects.filter(id=user_id)
+        if user is None:
+            return Response({"Error": "User Not Found"}, status=404)
         token = get_object_or_404(
             ActivationModel, user_id=user_id, token=confirmation_token)
-    except:
-        return Response({"Error": "Invalid Or Expired Token"})
+        # token = ActivationModel.objects.filter(
+        #     user_id=user_id, token=confirmation_token)
+        if token is None:
+            raise ValueError("Expired or invalid token")
+
+    except Exception as e:
+        raise e
 
     user.is_active = True
     user.save()
-    return Response("User Account Verified Successfully")
+    ActivationModel.objects.filter(
+        user_id=user_id, token=confirmation_token).delete()
+
+    return Response({"message": "User Account Verified Successfully"})
 
 # LOGIN
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny,])
+@ api_view(['POST'])
+@ permission_classes([AllowAny,])
 def login_api(request):
     serializer = AuthTokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -103,8 +103,8 @@ def login_api(request):
 # FETCH INFO
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsUser])
+@ api_view(['GET'])
+@ permission_classes([IsAuthenticated, IsUser])
 def get_user_data(request):
     user = request.user
     return Response({
@@ -132,8 +132,8 @@ change_passsword = ChangePasswordView.as_view()
 # FORGET PASSWORD REQUEST
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny,])
+@ api_view(['POST'])
+@ permission_classes([AllowAny,])
 def forgetpassword_request(request):
 
     try:
@@ -193,8 +193,8 @@ def forgetpassword_request(request):
 # PASSWORD RESET
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny,])
+@ api_view(['POST'])
+@ permission_classes([AllowAny,])
 def password_rest(request, **kwargs):
     # user_id = request.query_params.get('user_id', '')
     # confirmation_token = request.query_params.get('confirmation_token', '')
