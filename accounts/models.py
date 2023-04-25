@@ -51,11 +51,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     start_date = models.DateTimeField(default=timezone.now)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    password = models.CharField(max_length=1000)
 
     objects = CustomAccountManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'name']
+    REQUIRED_FIELDS = ['username', 'name', 'password']
 
     def _str_(self):
         return self.username
