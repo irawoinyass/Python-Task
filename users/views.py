@@ -50,18 +50,14 @@ def register_api(request):
 @api_view(['GET'])
 @permission_classes([AllowAny,])
 def activation(request, **kwargs):
-    # user_id = request.query_params.get('user_id', '')
-    # confirmation_token = request.query_params.get('confirmation_token', '')
     user_id = kwargs['user_id']
     confirmation_token = kwargs['confirmation_token']
 
     try:
-        userr = get_object_or_404(User, id=user_id)
         user = User.objects.filter(id=user_id)
         if user.count() == 0:
             return Response({"Error": "User Not Found"}, status=404)
-        # token = get_object_or_404(
-            # ActivationModel, user_id = user_id, token = confirmation_token)
+        userr = get_object_or_404(User, id=user_id)
         token = ActivationModel.objects.filter(
             user_id=user_id, token=confirmation_token)
         if token.count() == 0:
@@ -173,35 +169,23 @@ def forgetpassword_request(request):
 @ api_view(['POST'])
 @ permission_classes([AllowAny,])
 def password_rest(request, **kwargs):
-    # user_id = request.query_params.get('user_id', '')
-    # confirmation_token = request.query_params.get('confirmation_token', '')
     user_id = kwargs['user_id']
     confirmation_token = kwargs['confirmation_token']
+
     try:
+        checkUser = User.objects.filter(id=user_id).count()
+        if checkUser == 0:
+            return Response({"Error": "User Not Found"}, status=404)
         user = get_object_or_404(User, id=user_id)
-    except:
-        user = None
-
-    if user is None:
-        return Response({"Error": "User Not Found"})
-
-    try:
-        token = get_object_or_404(
-            PasswordTokenModel, user_id=user_id, token=confirmation_token)
-    except:
-        token = None
-
-    if token is None:
-        return Response({"Error": "Invalid or Expired Token"})
-
-    try:
+        token = PasswordTokenModel.objects.filter(
+            user_id=user_id, token=confirmation_token).count()
+        if token == 0:
+            return Response({"Error": "Invalid or Expired Token"}, status=404)
         password = request.data['password']
-    except:
-        return Response({"Error": "Password Field Not Found"})
-    # return Response(password)
-
-    if password == "":
-        return Response({"Error": "Password is required"})
+        if password == "":
+            return Response({"Error": "Password is required"}, status=404)
+    except Exception as e:
+        raise e
 
     PasswordTokenModel.objects.filter(user_id=user_id).delete()
 
