@@ -8,7 +8,7 @@ from .serializers import RegisterSerializer
 from accounts.models import User
 from .permissions import IsSuperUser, IsSuperUserTwo
 from categories.models import Category
-from posts.models import Post, Comment, NestedComment
+from posts.models import Post, Comment
 from posts.serializers import PostSerializer, CommentSerializer
 from accounts.paginate import StandardResultsSetPagination
 
@@ -131,8 +131,8 @@ def dashboard(request):
         categories = Category.objects.all().count()
         posts = Post.objects.all().count()
         primary_comment = Comment.objects.all().count()
-        nested_comment = NestedComment.objects.all().count()
-        comments = primary_comment + nested_comment
+
+        comments = primary_comment
         return Response({"users": users, "adminusers": adminusers, "categories": categories, "posts": posts, "comments": comments})
 
     return Response({"Error": "UnAuthorized User"})

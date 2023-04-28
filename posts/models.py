@@ -18,18 +18,11 @@ class Post(models.Model):
 class Comment(models.Model):
     post_id = models.ForeignKey(
         "posts.Post", on_delete=models.CASCADE, null=True)
+    parent = models.ForeignKey(
+        "posts.Comment", related_name='comment_parent_id', on_delete=models.CASCADE, null=True, default=None)
     user = models.ForeignKey(
         "accounts.User", on_delete=models.CASCADE, null=True)
     cat_id = models.ForeignKey(
         "categories.Category", on_delete=models.CASCADE, null=True)
-    comment = models.CharField(max_length=250, blank=False)
-    created_at = models.DateField(auto_now_add=True)
-
-
-class NestedComment(models.Model):
-    comment_id = models.ForeignKey(
-        "posts.Comment", on_delete=models.CASCADE, null=True)
-    user = models.ForeignKey(
-        "accounts.User", on_delete=models.CASCADE, null=True)
     comment = models.CharField(max_length=250, blank=False)
     created_at = models.DateField(auto_now_add=True)

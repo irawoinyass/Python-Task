@@ -1,16 +1,10 @@
 from rest_framework import serializers
-from .models import Post, Comment, NestedComment
+from .models import Post, Comment
 
 
 class WhoCommentPublicSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(read_only=True)
-
-
-class NestedCommentPublicSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    comment = serializers.CharField(read_only=True)
-    created_at = serializers.DateField(read_only=True)
 
 
 class PostPublicSerializer(serializers.Serializer):
@@ -89,19 +83,32 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class NestedCommentSerializer(serializers.ModelSerializer):
+    # nested = NestedCommentPublicSerializer(
+    #     source='posts.NestedComment', read_only=True)
+    post = PostPublicSerializer(
+        source='post_id', read_only=True)
     who_comment = WhoCommentPublicSerializer(
         source='user', read_only=True)
-    primary_comment = PrimaryCommentPublicSerializer(
-        source='comment_id', read_only=True)
-    comment_id = serializers.CharField()
+
+    category = CategoryPublicSerializer(
+        source='cat_id', read_only=True)
+
+    post_id = serializers.CharField()
+    cat_id = serializers.CharField()
+    parent = serializers.CharField()
 
     class Meta:
-        model = NestedComment
+        model = Comment
         fields = [
             'id',
-            'comment_id',
+            'post_id',
+            'parent',
+            'cat_id',
             'comment',
             'created_at',
+            'post',
+            'category',
             'who_comment',
-            'primary_comment'
+            # 'nested',
+
         ]

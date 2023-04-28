@@ -16,10 +16,6 @@ urlpatterns = [
     path('comment/delete/<int:pk>/', views.comment_destory_view),
     ########################### NestedComment Public ##################################
     path('comment/create-nestedcomment/', views.create_nestedcomment),
-    path('comment/nestedcomment/update/<int:pk>/',
-         views.nestedcomment_update_view),
-    path('comment/nestedcomment/delete/<int:pk>/',
-         views.nestedcomment_destory_view),
     ############################# Public ########################################
     path('comment/fetch-comments-by-post-id/<int:post_id>/',
          views.fetch_comments_by_post_id),
