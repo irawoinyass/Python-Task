@@ -226,7 +226,7 @@ def fetch_comments_by_post_id(request, **kwargs):
     user = request.user
     post_id = kwargs['post_id']
 
-    queryset = Comment.objects.filter(post_id=post_id, parent=Nones)
+    queryset = Comment.objects.filter(post_id=post_id, parent=None)
     if len(queryset) > 0:
         paginator = StandardResultsSetPagination()
         result_page = paginator.paginate_queryset(queryset, request)
@@ -297,7 +297,7 @@ def fetch_comments(request):
     except Exception as e:
         raise e
 
-    queryset = Comment.objects.filer(parent=None)
+    queryset = Comment.objects.filter(parent=None)
 
     if search:
         queryset = queryset.filter(title__icontains=search)

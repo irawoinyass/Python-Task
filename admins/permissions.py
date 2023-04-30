@@ -15,6 +15,6 @@ class IsSuperUser(permissions.DjangoModelPermissions):
 
 class IsSuperUserTwo(permissions.BasePermission):
     def has_permission(self, request, view):
-        if request.user.is_superuser is True:
+        if request.user.role == "ADMIN":
             return super().has_permission(request, view)
         return False

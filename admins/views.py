@@ -24,14 +24,8 @@ def login_api(request):
     _, token = AuthToken.objects.create(user)
 
     # pass
-    if user.is_superuser:
+    if user.role == "ADMIN":
         return Response({
-            'admin_info': {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'name': user.name,
-            },
             'token': token
         })
     return Response({"Error": "UnAuthorized User"})
@@ -42,7 +36,7 @@ def login_api(request):
 @permission_classes([IsAuthenticated])
 def get_admin_data(request):
     user = request.user
-    if user.is_superuser:
+    if user.role == "ADMIN":
         return Response({
             'admin_info': {
                 'id': user.id,
@@ -60,7 +54,7 @@ def get_admin_data(request):
 def create_admin_user(request):
     user = request.user
 
-    if user.is_superuser:
+    if user.role == "ADMIN":
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -123,7 +117,7 @@ adminuser_detail_view = AdminUserDetailAPIView.as_view()
 @permission_classes([IsAuthenticated,])
 def dashboard(request):
     user = request.user
-    if user.is_superuser:
+    if user.role == "ADMIN":
 
         users = User.objects.filter(is_staff=False).count()
         adminusers = User.objects.filter(
@@ -146,110 +140,27 @@ def fetch_posts(request):
 
     try:
         search = request.data['search']
-    except:
-        return Response({"Error": "Include Search Field"})
-
-    try:
         category_id = request.data['category_id']
-    except:
-        return Response({"Error": "Include Category ID Field"})
-
-    try:
         date = request.data['date']
-    except:
-        return Response({"Error": "Include Date Field"})
+    except Exception as e:
+        raise e
 
-    # Search Only
-    if search != "" and category_id == "" and date == "":
-        queryset = Post.objects.filter(title__icontains=search)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = PostSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-    # Category Only
-    if search == "" and category_id != "" and date == "":
-        queryset = Post.objects.filter(category_id=category_id)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = PostSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-    # Date Only
-    if search == "" and category_id == "" and date != "":
-        queryset = Post.objects.filter(
-            posted_at__gte=date)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = PostSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-        # Search,  Caegory, Date
-    if search != "" and category_id != "" and date != "":
-        queryset = Post.objects.filter(title__icontains=search).filter(category_id=category_id).filter(
-            posted_at__gte=date)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = PostSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-        # Search,  Caegory
-    if search != "" and category_id != "" and date == "":
-        queryset = Post.objects.filter(title__icontains=search).filter(
-            category_id=category_id)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = PostSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-         # Search, Date
-    if search != "" and category_id == "" and date != "":
-        queryset = Post.objects.filter(title__icontains=search).filter(
-            posted_at__gte=date)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = PostSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-    # Caegory, Date
-    if search == "" and category_id != "" and date != "":
-        queryset = Post.objects.filter(category_id=category_id).filter(
-            posted_at__gte=date)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = PostSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-    # default
     queryset = Post.objects.all()
+
+    if search:
+        queryset = queryset.filter(title__icontains=search)
+    if category_id:
+        queryset = queryset.filter(category_id=category_id)
+    if date:
+        queryset = queryset.filter(posted_at__gte=date)
+
     if len(queryset) > 0:
         paginator = StandardResultsSetPagination()
         result_page = paginator.paginate_queryset(queryset, request)
         serializer = PostSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
     else:
-        return Response({"detail": "Nothing Found"})
+        return Response({"detail": "Nothing Found"}, status=404)
 
 
 # fetch_comment
@@ -260,108 +171,24 @@ def fetch_comments(request):
 
     try:
         search = request.data['search']
-    except:
-        return Response({"Error": "Include Search Field"})
-
-    try:
         cat_id = request.data['cat_id']
-    except:
-        return Response({"Error": "Include Category ID Field"})
-
-    try:
         date = request.data['date']
-    except:
-        return Response({"Error": "Include Date Field"})
+    except Exception as e:
+        raise e
 
-    # Search Only
-    if search != "" and cat_id == "" and date == "":
-        queryset = Comment.objects.filter(
-            title__icontains=search)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = CommentSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
+    queryset = Comment.objects.filter(parent=None)
 
-    # Category Only
-    if search == "" and cat_id != "" and date == "":
-        queryset = Comment.objects.filter(cat_id=cat_id)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = CommentSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
+    if search:
+        queryset = queryset.filter(title__icontains=search)
+    if cat_id:
+        queryset = queryset.filter(cat_id=cat_id)
+    if date:
+        queryset = queryset.filter(created_at__gte=date)
 
-    # Date Only
-    if search == "" and cat_id == "" and date != "":
-        queryset = Comment.objects.filter(
-            created_at__gte=date)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = CommentSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-        # Search,  Caegory, Date
-    if search != "" and cat_id != "" and date != "":
-        queryset = Comment.objects.filter(title__icontains=search).filter(cat_id=cat_id).filter(
-            created_at__gte=date)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = CommentSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-        # Search,  Caegory
-    if search != "" and cat_id != "" and date == "":
-        queryset = Comment.objects.filter(title__icontains=search).filter(
-            cat_id=cat_id)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = CommentSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-         # Search, Date
-    if search != "" and cat_id == "" and date != "":
-        queryset = Comment.objects.filter(title__icontains=search).filter(
-            created_at__gte=date)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = CommentSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-    # Caegory, Date
-    if search == "" and cat_id != "" and date != "":
-        queryset = Comment.objects.filter(cat_id=cat_id).filter(
-            created_at__gte=date)
-        if len(queryset) > 0:
-            paginator = StandardResultsSetPagination()
-            result_page = paginator.paginate_queryset(queryset, request)
-            serializer = CommentSerializer(result_page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Nothing Found"})
-
-    # default
-    queryset = Comment.objects.all()
     if len(queryset) > 0:
         paginator = StandardResultsSetPagination()
         result_page = paginator.paginate_queryset(queryset, request)
         serializer = CommentSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
     else:
-        return Response({"detail": "Nothing Found"})
+        return Response({"detail": "Nothing Found"}, status=404)

@@ -31,12 +31,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         password = validated_data.get("password")
         email = validated_data.get("email")
         name = validated_data.get("name")
+        role = "ADMIN"
 
         user = User.objects.create_staff(
             username=username,
             password=password,
             email=email,
-            name=name
+            name=name,
+            role=role
         )
 
         return user
