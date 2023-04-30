@@ -1,5 +1,5 @@
-**/__pycache__
+**/_pycache_
 venv/
-**/migrations/**
+*/migrations/*
 !**/migrations
-!**/migrations/__init__.py
+!**/migrations/_init_.py
